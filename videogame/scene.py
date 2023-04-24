@@ -18,14 +18,15 @@ import os
 import pygame
 import rgbcolors
 from random import randint, uniform
-from animation import Explosion
-
+import assets
 
 # If you're interested in using abstract base classes, feel free to rewrite
 # these classes.
 # For more information about Python Abstract Base classes, see
 # https://docs.python.org/3.8/library/abc.html
 
+def random_position(max_width, max_height):
+    return pygame.math.Vector2(randint(0, max_width-1), randint(0, max_height-1))
 
 class Scene:
     """Base class for making PyGame Scenes."""
@@ -183,19 +184,19 @@ class MoveScene(PressAnyKeyToExitScene):
         self._delta_time = 0
         self._circles = []
         self.make_circles()
+        self._sucking_sound = pygame.mixer.Sound(assets.get('suck3'))
+        self._explosion_sound = pygame.mixer.Sound(assets.get('explosion'))
 
     def make_circles(self):
         num_circles = 1000
         circle_radius = 5
         buffer_between = 3
-        def random_position():
-            return pygame.math.Vector2(randint(0, width-1), randint(0, height-1))
         (width, height) = self._screen.get_size()
         for i in range(num_circles):
-            position = random_position()
+            position = random_position(width, height)
             does_collide = [c.contains(position, buffer_between) for c in self._circles]
             while any(does_collide) and len(self._circles):
-                position = random_position()
+                position = random_position(width, height)
                 does_collide = [c.contains(position, buffer_between) for c in self._circles]
 
             speed = uniform(Circle.min_speed, Circle.max_speed)
@@ -215,9 +216,11 @@ class MoveScene(PressAnyKeyToExitScene):
             if self._target_position:
                 self._target_position = None
                 print('Going home.')
+                self._explosion_sound.play()
             else:
                 self._target_position = pygame.math.Vector2(event.pos)
                 print(f'Target position is {self._target_position}')
+                self._sucking_sound.play()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
             print('Reset...', end='', flush=True)
             self._target_position = None
@@ -228,6 +231,7 @@ class MoveScene(PressAnyKeyToExitScene):
             super().process_event(event)
     
     def update_scene(self):
+        super().update_scene()
         if self._target_position:
             for c in self._circles:
                 if True:
