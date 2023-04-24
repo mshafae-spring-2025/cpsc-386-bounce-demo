@@ -15,6 +15,7 @@ asset_dict = {
 
 def get(key):
   x = asset_dict.get(key, None)
+  assert x
   if x:
     x = os.path.join(data_dir, x)
   return x
