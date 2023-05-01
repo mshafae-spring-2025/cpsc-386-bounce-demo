@@ -1,3 +1,3 @@
-# Explosions and Sound Effects
+# Movement Using Vectors and Speed
 
-The program draws a grid of circles. Clicking on a circle causes it to exlode using a sprite animation and a sound effect is played.
+The program is inspired by the Pygame example [`go_over_there.py`](https://github.com/pygame/pygame/blob/main/examples/go_over_there.py).

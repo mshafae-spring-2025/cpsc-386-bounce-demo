@@ -18,14 +18,15 @@ import os
 import pygame
 import rgbcolors
 from random import randint, uniform
-from animation import Explosion
-
+import assets
 
 # If you're interested in using abstract base classes, feel free to rewrite
 # these classes.
 # For more information about Python Abstract Base classes, see
 # https://docs.python.org/3.8/library/abc.html
 
+def random_position(max_width, max_height):
+    return pygame.math.Vector2(randint(0, max_width-1), randint(0, max_height-1))
 
 class Scene:
     """Base class for making PyGame Scenes."""
@@ -99,9 +100,13 @@ class PressAnyKeyToExitScene(Scene):
 
 class Circle:
     """Class representing a ball with a bounding rect."""
-
+    min_speed = 0.25
+    max_speed = 5.0
     def __init__(self, position, speed, radius, color, name="None"):
         self._position = position
+        self._original_position = pygame.math.Vector2(position)
+        assert speed <= Circle.max_speed
+        assert speed >= Circle.min_speed
         self._speed = speed
         self._radius = radius
         self._color = color
@@ -117,6 +122,10 @@ class Circle:
         """Return the circle's position."""
         return self._position
 
+    @property
+    def original_position(self):
+        return self._original_position
+
     @position.setter
     def position(self, val):
         """Set the circle's position."""
@@ -127,6 +136,10 @@ class Circle:
         """Return the circle's speed."""
         return self._speed
 
+    @property
+    def inverse_speed(self):
+        return Circle.max_speed - self._speed
+    
     def move_ip(self, x, y):
         self._position = self._position + pygame.math.Vector2(x, y)
     
@@ -148,6 +161,14 @@ class Circle:
         """Return the height of the bounding box the circle is in."""
         return 2 * self._radius
 
+    def contains(self, point, buffer=0):
+        """Return true if point is in the circle + buffer"""
+        v = point - self._position
+        distance = v.length()
+        # assume all circles have the same radius
+        seperating_distance = 2 * (self._radius + buffer)
+        return distance <= seperating_distance
+
     def draw(self, screen):
         """Draw the circle to screen."""
         pygame.draw.circle(screen, self._color, self.position, self.radius)
@@ -164,16 +185,22 @@ class MoveScene(PressAnyKeyToExitScene):
         self._delta_time = 0
         self._circles = []
         self.make_circles()
+        self._sucking_sound = pygame.mixer.Sound(assets.get('suck3'))
+        self._explosion_sound = pygame.mixer.Sound(assets.get('explosion'))
 
     def make_circles(self):
         num_circles = 1000
         circle_radius = 5
-        min_speed = 0.25
-        max_speed = 5.0
+        buffer_between = 3
         (width, height) = self._screen.get_size()
         for i in range(num_circles):
-            position = pygame.math.Vector2(randint(0, width-1), randint(0, height-1))
-            speed = uniform(min_speed, max_speed)
+            position = random_position(width, height)
+            does_collide = [c.contains(position, buffer_between) for c in self._circles]
+            while any(does_collide) and len(self._circles):
+                position = random_position(width, height)
+                does_collide = [c.contains(position, buffer_between) for c in self._circles]
+
+            speed = uniform(Circle.min_speed, Circle.max_speed)
             c = Circle(position, speed, circle_radius, rgbcolors.random_color(), i+1)
             self._circles.append(c)
     
@@ -187,18 +214,28 @@ class MoveScene(PressAnyKeyToExitScene):
     
     def process_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            self._target_position = pygame.math.Vector2(event.pos)
-            print(f'Target position is {self._target_position}')
+            if self._target_position:
+                self._target_position = None
+                print('Going home.')
+                self._explosion_sound.play()
+            else:
+                self._target_position = pygame.math.Vector2(event.pos)
+                print(f'Target position is {self._target_position}')
+                self._sucking_sound.play()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            print('Reset...', end='', flush=True)
             self._target_position = None
+            self._circles = []
             self.make_circles()
+            print('done.')
         else:
             super().process_event(event)
     
     def update_scene(self):
+        super().update_scene()
         if self._target_position:
             for c in self._circles:
-                if 1:
+                if True:
                     c.position.move_towards_ip(self._target_position, c.speed * self._delta_time)
                 else:
                     max_distance = c.speed * self._delta_time
@@ -213,6 +250,9 @@ class MoveScene(PressAnyKeyToExitScene):
                     else:
                         movement = direction * (max_distance / distance)
                         c.move_ip(movement.x, movement.y)
+        else:
+            for c in self._circles:
+                c.position.move_towards_ip(c.original_position, c.inverse_speed * self._delta_time)
 
     def draw(self):
         super().draw()
