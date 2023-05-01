@@ -157,6 +157,7 @@ class Circle:
         return f'Circle({repr(self._position)}, {self._radius}, {self._color}, "{self._name}")'
 
 class MoveScene(PressAnyKeyToExitScene):
+    """Inspired by the go_over_there.py demo included in the pygame source."""
     def __init__(self, screen):
         super().__init__(screen, rgbcolors.black, None)
         self._target_position = None
