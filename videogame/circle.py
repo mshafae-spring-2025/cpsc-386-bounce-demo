@@ -87,9 +87,11 @@ class CircleSprite(pygame.sprite.Sprite):
 
     @property
     def inverse_speed(self):
-        return CircleSprite.max_speed - self._speed
+        """The inverse speed which can't be slower than the min_speed"""
+        return max(CircleSprite.max_speed - self._speed, CircleSprite.min_speed)
 
     def move_ip(self, x, y):
+        """Move, in-place"""
         self.position = self.position + pygame.math.Vector2(x, y)
 
     def contains(self, point, buffer=0):
