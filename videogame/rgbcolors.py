@@ -1,6 +1,8 @@
 """A list of RGB colors produced by X11's showrgb command. The color database
     is probably from an IRIX system circa 2005"""
 
+# pylint: disable=too-many-lines
+
 from random import choice
 from pygame import Color
 
@@ -46,9 +48,11 @@ def tuple_to_color(color_tuple):
     """Given a tuple representing a color, return a Pygame color contructed from that tuple."""
     return Color(*color_tuple)
 
+
 def random_color():
     """Return a random color."""
     return choice(all_colors)
+
 
 snow = (255, 250, 250)
 ghost_white = (248, 248, 255)

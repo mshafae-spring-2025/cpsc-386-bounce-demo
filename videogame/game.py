@@ -9,6 +9,8 @@ from .scene import (
     MoveScene,
 )
 
+from .scenemanager import SceneManager
+
 
 def display_info():
     """Print out information about the display driver and video information."""
@@ -23,6 +25,7 @@ def display_info():
 # https://docs.python.org/3.8/library/abc.html
 
 
+# pylint: disable=too-few-public-methods
 class VideoGame:
     """Base class for creating PyGame games."""
 
@@ -44,44 +47,38 @@ class VideoGame:
             warnings.warn("Fonts disabled.", RuntimeWarning)
         if not pygame.mixer:
             warnings.warn("Sound disabled.", RuntimeWarning)
-        self._scene_graph = None
-
-    @property
-    def scene_graph(self):
-        """Return the scene graph representing all the scenes in the game."""
-        return self._scene_graph
-
-    def build_scene_graph(self):
-        """Build the scene graph for the game."""
-        raise NotImplementedError
+        else:
+            pygame.mixer.init()
+        self._scene_manager = None
 
     def run(self):
         """Run the game; the main game loop."""
         raise NotImplementedError
+# pylint: enable=too-few-public-methods
 
-
+# pylint: disable=too-few-public-methods
 class MoveDemo(VideoGame):
     """Show a colored window with a colored message and a polygon."""
 
     def __init__(self):
         """Init the Pygame demo."""
         super().__init__(window_title="Move Demo")
-        self.build_scene_graph()
-
-    def build_scene_graph(self):
-        """Build scene graph for the game demo."""
-        self._scene_graph = [
-            MoveScene(self._screen),
-        ]
+        self._scene_manager = SceneManager(
+            [
+                MoveScene(self._screen),
+            ]
+        )
 
     def run(self):
         """Run the game; the main game loop."""
-        scene_iterator = iter(self.scene_graph)
+        scene_iterator = iter(self._scene_manager)
+        current_scene = next(scene_iterator)
         while not self._game_is_over:
-            current_scene = next(scene_iterator)
             current_scene.start_scene()
             while current_scene.is_valid():
-                current_scene.delta_time = self._clock.tick(current_scene.frame_rate())
+                current_scene.delta_time = self._clock.tick(
+                    current_scene.frame_rate()
+                )
                 for event in pygame.event.get():
                     current_scene.process_event(event)
                 current_scene.update_scene()
@@ -89,6 +86,10 @@ class MoveDemo(VideoGame):
                 current_scene.render_updates()
                 pygame.display.update()
             current_scene.end_scene()
-            self._game_is_over = True
+            try:
+                current_scene = next(scene_iterator)
+            except StopIteration:
+                self._game_is_over = True
         pygame.quit()
         return 0
+# pylint: enable=too-few-public-methods

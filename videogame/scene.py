@@ -1,12 +1,12 @@
 
 """Scene objects for making games with PyGame."""
 
-import math
-import os
+from math import isclose
 import pygame
-from videogame import rgbcolors
 from random import randint, uniform
 from videogame import assets
+from videogame import rgbcolors
+from .circle import CircleSprite
 
 # If you're interested in using abstract base classes, feel free to rewrite
 # these classes.
@@ -19,10 +19,16 @@ def random_position(max_width, max_height):
 class Scene:
     """Base class for making PyGame Scenes."""
 
-    def __init__(self, screen, background_color, soundtrack=None):
+    def __init__(
+        self, screen, background_color, screen_flags=None, soundtrack=None
+    ):
         """Scene initializer"""
         self._screen = screen
-        self._background = pygame.Surface(self._screen.get_size())
+        if not screen_flags:
+            screen_flags = pygame.SCALED
+        self._background = pygame.Surface(
+            self._screen.get_size(), flags=screen_flags
+        )
         self._background.fill(background_color)
         self._frame_rate = 60
         self._is_valid = True
@@ -59,11 +65,11 @@ class Scene:
         if self._soundtrack:
             try:
                 pygame.mixer.music.load(self._soundtrack)
-                pygame.mixer.music.set_volume(0.5)
+                pygame.mixer.music.set_volume(0.2)
             except pygame.error as pygame_error:
                 print("\n".join(pygame_error.args))
                 raise SystemExit("broken!!") from pygame_error
-            pygame.mixer.music.play(-1)
+            pygame.mixer.music.play(loops=-1, fade_ms=500)
 
     def end_scene(self):
         """End the scene."""
@@ -86,98 +92,23 @@ class PressAnyKeyToExitScene(Scene):
             self._is_valid = False
 
 
-class Circle:
-    """Class representing a ball with a bounding rect."""
-    min_speed = 0.25
-    max_speed = 5.0
-    def __init__(self, position, speed, radius, color, name="None"):
-        self._position = position
-        self._original_position = pygame.math.Vector2(position)
-        assert speed <= Circle.max_speed
-        assert speed >= Circle.min_speed
-        self._speed = speed
-        self._radius = radius
-        self._color = color
-        self._name = name
-
-    @property
-    def radius(self):
-        """Return the circle's radius"""
-        return self._radius
-
-    @property
-    def position(self):
-        """Return the circle's position."""
-        return self._position
-
-    @property
-    def original_position(self):
-        return self._original_position
-
-    @position.setter
-    def position(self, val):
-        """Set the circle's position."""
-        self._position = val
-
-    @property
-    def speed(self):
-        """Return the circle's speed."""
-        return self._speed
-
-    @property
-    def inverse_speed(self):
-        return Circle.max_speed - self._speed
-    
-    def move_ip(self, x, y):
-        self._position = self._position + pygame.math.Vector2(x, y)
-    
-    @property
-    def rect(self):
-        """Return bounding rect."""
-        left = self._position.x - self._radius
-        top = self._position.y - self._radius
-        width = 2 * self._radius
-        return pygame.Rect(left, top, width, width)
-
-    @property
-    def width(self):
-        """Return the width of the bounding box the circle is in."""
-        return 2 * self._radius
-
-    @property
-    def height(self):
-        """Return the height of the bounding box the circle is in."""
-        return 2 * self._radius
-
-    def contains(self, point, buffer=0):
-        """Return true if point is in the circle + buffer"""
-        v = point - self._position
-        distance = v.length()
-        # assume all circles have the same radius
-        seperating_distance = 2 * (self._radius + buffer)
-        return distance <= seperating_distance
-
-    def draw(self, screen):
-        """Draw the circle to screen."""
-        pygame.draw.circle(screen, self._color, self.position, self.radius)
-
-    def __repr__(self):
-        """Circle stringify."""
-        return f'Circle({repr(self._position)}, {self._radius}, {self._color}, "{self._name}")'
-
 class MoveScene(PressAnyKeyToExitScene):
     """Inspired by the go_over_there.py demo included in the pygame source."""
-    def __init__(self, screen):
+    def __init__(self, screen, num_circles=1000):
         super().__init__(screen, rgbcolors.black, None)
         self._target_position = None
         self._delta_time = 0
         self._circles = []
-        self.make_circles()
+        self.make_circles(num_circles)
+        self._allsprites = pygame.sprite.RenderPlain(self._circles)
         self._sucking_sound = pygame.mixer.Sound(assets.get('suck3'))
+        self._sucking_sound.set_volume(0.25)
         self._explosion_sound = pygame.mixer.Sound(assets.get('explosion'))
-
-    def make_circles(self):
-        num_circles = 1000
+        self._explosion_sound.set_volume(0.1)
+        
+    def make_circles(self, num_circles):
+        # num_circles = 1000
+        print('Num circles', num_circles)
         circle_radius = 5
         buffer_between = 3
         (width, height) = self._screen.get_size()
@@ -188,8 +119,8 @@ class MoveScene(PressAnyKeyToExitScene):
                 position = random_position(width, height)
                 does_collide = [c.contains(position, buffer_between) for c in self._circles]
 
-            speed = uniform(Circle.min_speed, Circle.max_speed)
-            c = Circle(position, speed, circle_radius, rgbcolors.random_color(), i+1)
+            speed = uniform(CircleSprite.min_speed, CircleSprite.max_speed)
+            c = CircleSprite(position, speed, circle_radius, rgbcolors.random_color(), i+1)
             self._circles.append(c)
     
     @property
@@ -224,14 +155,16 @@ class MoveScene(PressAnyKeyToExitScene):
         if self._target_position:
             for c in self._circles:
                 if True:
-                    c.position.move_towards_ip(self._target_position, c.speed * self._delta_time)
+                    # Can't use move_towards_ip because c.position is a property converting the
+                    # sprite's rect center.
+                    c.position = c.position.move_towards(self._target_position, c.speed * self._delta_time)
                 else:
                     max_distance = c.speed * self._delta_time
-                    if math.isclose(max_distance, 0.0, rel_tol=1e-01):
+                    if isclose(max_distance, 0.0, rel_tol=1e-01):
                         continue
                     direction = self._target_position - c.position
                     distance = direction.length()
-                    if math.isclose(distance, 0.0, rel_tol=1e-01):
+                    if isclose(distance, 0.0, rel_tol=1e-01):
                         continue
                     elif distance <= max_distance:
                         c.position = self._target_position
@@ -240,9 +173,14 @@ class MoveScene(PressAnyKeyToExitScene):
                         c.move_ip(movement.x, movement.y)
         else:
             for c in self._circles:
-                c.position.move_towards_ip(c.original_position, c.inverse_speed * self._delta_time)
+                # Can't use move_towards_ip because c.position is a property converting the
+                # sprite's rect center.
+                c.position = c.position.move_towards(c.original_position, c.inverse_speed * self._delta_time)
 
     def draw(self):
         super().draw()
-        for c in self._circles:
-            c.draw(self._screen)
+    
+    def render_updates(self):
+        super().render_updates()
+        self._allsprites.draw(self._screen)
+        
