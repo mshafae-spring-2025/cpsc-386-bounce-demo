@@ -65,7 +65,7 @@ class Scene:
         if self._soundtrack:
             try:
                 pygame.mixer.music.load(self._soundtrack)
-                pygame.mixer.music.set_volume(0.2)
+                pygame.mixer.music.set_volume(0.05)
             except pygame.error as pygame_error:
                 print("\n".join(pygame_error.args))
                 raise SystemExit("broken!!") from pygame_error
@@ -95,17 +95,22 @@ class PressAnyKeyToExitScene(Scene):
 class MoveScene(PressAnyKeyToExitScene):
     """Inspired by the go_over_there.py demo included in the pygame source."""
     def __init__(self, screen, num_circles=1000):
-        super().__init__(screen, rgbcolors.black, None)
+        super().__init__(screen, rgbcolors.black, soundtrack=assets.get('soundtrack'))
         self._target_position = None
         self._delta_time = 0
         self._circles = []
         self.make_circles(num_circles)
         self._allsprites = pygame.sprite.RenderPlain(self._circles)
-        self._sucking_sound = pygame.mixer.Sound(assets.get('suck3'))
-        self._sucking_sound.set_volume(0.25)
+        self._sucking_sound = None
         self._explosion_sound = pygame.mixer.Sound(assets.get('explosion'))
         self._explosion_sound.set_volume(0.1)
-        
+    
+    @property
+    def sucking_sound(self):
+        self._sucking_sound = pygame.mixer.Sound(assets.get(f'suck{randint(1,3)}'))
+        self._sucking_sound.set_volume(0.25)
+        return self._sucking_sound
+            
     def make_circles(self, num_circles):
         # num_circles = 1000
         print('Num circles', num_circles)
@@ -140,7 +145,7 @@ class MoveScene(PressAnyKeyToExitScene):
             else:
                 self._target_position = pygame.math.Vector2(event.pos)
                 print(f'Target position is {self._target_position}')
-                self._sucking_sound.play()
+                self.sucking_sound.play()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
             print('Reset...', end='', flush=True)
             self._target_position = None
