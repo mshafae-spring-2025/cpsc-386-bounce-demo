@@ -1,3 +1,4 @@
 pygame==2.*
+pylint
 # Editable install with no version control (videogame==0.1)
 -e videogame
