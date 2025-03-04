@@ -1,11 +1,3 @@
-
-
-import os
-import pygame
-
-main_dir = os.path.split(os.path.abspath(__file__))[0]
-data_dir = os.path.join(main_dir, "data")
-
 """Game assets and where they are located. This is a lazy/OK solution 
 to creating a singleton class."""
 
@@ -48,12 +40,3 @@ def get(key):
     # Make sure the path exists
     assert path.exists(value)
     return value
-
-def get(key):
-  x = asset_dict.get(key, None)
-  assert x
-  if x:
-    x = os.path.join(data_dir, x)
-  return x
-
-

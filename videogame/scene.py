@@ -1,9 +1,8 @@
-
 """Scene objects for making games with PyGame."""
 
 from math import isclose
-import pygame
 from random import randint, uniform
+import pygame
 from videogame import assets
 from videogame import rgbcolors
 from .circle import CircleSprite
@@ -13,8 +12,12 @@ from .circle import CircleSprite
 # For more information about Python Abstract Base classes, see
 # https://docs.python.org/3.8/library/abc.html
 
+
 def random_position(max_width, max_height):
-    return pygame.math.Vector2(randint(0, max_width-1), randint(0, max_height-1))
+    return pygame.math.Vector2(
+        randint(0, max_width - 1), randint(0, max_height - 1)
+    )
+
 
 class Scene:
     """Base class for making PyGame Scenes."""
@@ -94,8 +97,11 @@ class PressAnyKeyToExitScene(Scene):
 
 class MoveScene(PressAnyKeyToExitScene):
     """Inspired by the go_over_there.py demo included in the pygame source."""
+
     def __init__(self, screen, num_circles=1000):
-        super().__init__(screen, rgbcolors.black, soundtrack=assets.get('soundtrack'))
+        super().__init__(
+            screen, rgbcolors.black, soundtrack=assets.get('soundtrack')
+        )
         self._target_position = None
         self._delta_time = 0
         self._circles = []
@@ -104,13 +110,15 @@ class MoveScene(PressAnyKeyToExitScene):
         self._sucking_sound = None
         self._explosion_sound = pygame.mixer.Sound(assets.get('explosion'))
         self._explosion_sound.set_volume(0.1)
-    
+
     @property
     def sucking_sound(self):
-        self._sucking_sound = pygame.mixer.Sound(assets.get(f'suck{randint(1,3)}'))
+        self._sucking_sound = pygame.mixer.Sound(
+            assets.get(f'suck{randint(1,3)}')
+        )
         self._sucking_sound.set_volume(0.25)
         return self._sucking_sound
-            
+
     def make_circles(self, num_circles):
         # num_circles = 1000
         print('Num circles', num_circles)
@@ -119,23 +127,29 @@ class MoveScene(PressAnyKeyToExitScene):
         (width, height) = self._screen.get_size()
         for i in range(num_circles):
             position = random_position(width, height)
-            does_collide = [c.contains(position, buffer_between) for c in self._circles]
-            while any(does_collide) and len(self._circles):
+            does_collide = [
+                c.contains(position, buffer_between) for c in self._circles
+            ]
+            while any(does_collide) and len(self._circles) != 0:
                 position = random_position(width, height)
-                does_collide = [c.contains(position, buffer_between) for c in self._circles]
+                does_collide = [
+                    c.contains(position, buffer_between) for c in self._circles
+                ]
 
             speed = uniform(CircleSprite.min_speed, CircleSprite.max_speed)
-            c = CircleSprite(position, speed, circle_radius, rgbcolors.random_color(), i+1)
+            c = CircleSprite(
+                position, speed, circle_radius, rgbcolors.random_color(), i + 1
+            )
             self._circles.append(c)
-    
+
     @property
     def delta_time(self):
         return self._delta_time
-    
+
     @delta_time.setter
     def delta_time(self, val):
         self._delta_time = val
-    
+
     def process_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self._target_position:
@@ -149,12 +163,14 @@ class MoveScene(PressAnyKeyToExitScene):
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
             print('Reset...', end='', flush=True)
             self._target_position = None
+            num_circles = len(self._circles)
             self._circles = []
-            self.make_circles()
+            self.make_circles(num_circles)
+            self._allsprites = pygame.sprite.RenderPlain(self._circles)
             print('done.')
         else:
             super().process_event(event)
-    
+
     def update_scene(self):
         super().update_scene()
         if self._target_position:
@@ -162,7 +178,9 @@ class MoveScene(PressAnyKeyToExitScene):
                 if True:
                     # Can't use move_towards_ip because c.position is a property converting the
                     # sprite's rect center.
-                    c.position = c.position.move_towards(self._target_position, c.speed * self._delta_time)
+                    c.position = c.position.move_towards(
+                        self._target_position, c.speed * self._delta_time
+                    )
                 else:
                     max_distance = c.speed * self._delta_time
                     if isclose(max_distance, 0.0, rel_tol=1e-01):
@@ -180,12 +198,13 @@ class MoveScene(PressAnyKeyToExitScene):
             for c in self._circles:
                 # Can't use move_towards_ip because c.position is a property converting the
                 # sprite's rect center.
-                c.position = c.position.move_towards(c.original_position, c.inverse_speed * self._delta_time)
+                c.position = c.position.move_towards(
+                    c.original_position, c.inverse_speed * self._delta_time
+                )
 
-    def draw(self):
-        super().draw()
-    
+    # def draw(self):
+    #     super().draw()
+
     def render_updates(self):
         super().render_updates()
         self._allsprites.draw(self._screen)
-        
