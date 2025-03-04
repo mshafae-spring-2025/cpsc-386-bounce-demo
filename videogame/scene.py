@@ -1,24 +1,12 @@
-# Michael Shafae
-# CPSC 386-01
-# 2050-01-01
-# mshafae@csu.fullerton.edu
-# @mshafae
-#
-# Lab 00-00
-#
-# Partners:
-#
-# This my first program and it prints out Hello World!
-#
 
 """Scene objects for making games with PyGame."""
 
 import math
 import os
 import pygame
-import rgbcolors
+from videogame import rgbcolors
 from random import randint, uniform
-import assets
+from videogame import assets
 
 # If you're interested in using abstract base classes, feel free to rewrite
 # these classes.

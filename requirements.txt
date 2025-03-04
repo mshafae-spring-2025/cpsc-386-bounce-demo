@@ -1,3 +1,3 @@
-pygame==2.3.0
+pygame==2.*
 # Editable install with no version control (videogame==0.1)
 -e videogame

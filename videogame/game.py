@@ -1,22 +1,11 @@
-# Michael Shafae
-# CPSC 386-01
-# 2050-01-01
-# mshafae@csu.fullerton.edu
-# @mshafae
-#
-# Lab 00-00
-#
-# Partners:
-#
-# This my first program and it prints out Hello World!
-#
+
 """Game objects to create PyGame based games."""
 
 import warnings
 
 import pygame
 
-from scene import (
+from .scene import (
     MoveScene,
 )
 
