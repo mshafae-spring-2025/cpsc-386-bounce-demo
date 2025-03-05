@@ -23,7 +23,8 @@ data_dir = path.join(main_dir, "data")
 # asset_dict = {
 #     'soundtrack': '8bp051-06-random-happy_ending_after_all.mp3',
 # }
-
+# Look up; the dictionary is defined in a file named movedemo_asset_dict.py and
+# imported into this file as asset_dict.
 
 def get(key):
     """Given the key representing the asset, return a fully qualified

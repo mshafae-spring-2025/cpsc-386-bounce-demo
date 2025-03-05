@@ -25,15 +25,6 @@ class CircleSurface(pygame.Surface):
         """Return the circle's radius"""
         return self._radius
 
-    # @property
-    # def center(self):
-    #     """Return the circle's center in window coordinates."""
-    #     return self._center
-
-    # def get_rect(self):
-    #     """Return bounding rect."""
-    #     return super().get_rect(center=(self._center.x, self._center.y))
-
     @property
     def rect(self):
         """Return bounding rect."""

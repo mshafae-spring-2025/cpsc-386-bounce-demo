@@ -202,9 +202,6 @@ class MoveScene(PressAnyKeyToExitScene):
                     c.original_position, c.inverse_speed * self._delta_time
                 )
 
-    # def draw(self):
-    #     super().draw()
-
     def render_updates(self):
         super().render_updates()
         self._allsprites.draw(self._screen)
