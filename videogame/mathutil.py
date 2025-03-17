@@ -1,7 +1,7 @@
-
 import pygame
 from math import isclose, inf
 from .circle import CircleSprite
+
 
 def elastic_bounce(a, b):
     if not isinstance(a, CircleSprite):
@@ -13,10 +13,11 @@ def elastic_bounce(a, b):
     ab_center = a.position - b.position
     ab_v_dot_ab_c = ab_velocity.dot(ab_center)
     dist = ab_center.length_squared()
-    assert(dist != 0.0)
+    assert dist != 0.0
     quot = ab_v_dot_ab_c / dist
     new_velocity = a.velocity - ((mass * quot) * ab_center)
     return new_velocity
+
 
 def midpoint(a, b):
     assert isinstance(a, pygame.math.Vector2)

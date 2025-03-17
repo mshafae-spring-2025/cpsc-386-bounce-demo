@@ -26,6 +26,7 @@ data_dir = path.join(main_dir, "data")
 # Look up; the dictionary is defined in a file named movedemo_asset_dict.py and
 # imported into this file as asset_dict.
 
+
 def get(key):
     """Given the key representing the asset, return a fully qualified
     path to the asset."""

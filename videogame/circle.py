@@ -5,6 +5,7 @@ from videogame import assets
 from videogame import rgbcolors
 from random import uniform
 
+
 class CircleSurface(pygame.Surface):
     """Class representing a circle with a bounding rect."""
 
@@ -66,7 +67,7 @@ class CircleSprite(pygame.sprite.Sprite):
         else:
             self.image = self._png_image
             self._png_is_on = True
-    
+
     @property
     def radius(self):
         return self._radius
@@ -101,18 +102,18 @@ class CircleSprite(pygame.sprite.Sprite):
     @property
     def velocity(self):
         return self._direction * self._speed
-    
+
     @velocity.setter
     def velocity(self, new_velocity):
         if not isinstance(new_velocity, pygame.math.Vector2):
             raise TypeError("new_direction doesn't match self._direction")
         self._speed = new_velocity.length()
         self._direction = new_velocity.normalize()
-    
+
     @property
     def mass(self):
         return 1.0
-    
+
     def move_ip(self, x, y):
         """Move, in-place"""
         self.position = self.position + pygame.math.Vector2(x, y)

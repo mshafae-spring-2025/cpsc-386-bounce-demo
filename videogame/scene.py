@@ -16,8 +16,10 @@ from .mathutil import elastic_bounce, midpoint
 
 def random_position(max_width, max_height, buffer_space=0):
     return pygame.math.Vector2(
-        randint(0 + buffer_space, max_width - (1 + buffer_space)), randint(0 + buffer_space, max_height - (1 + buffer_space))
+        randint(0 + buffer_space, max_width - (1 + buffer_space)),
+        randint(0 + buffer_space, max_height - (1 + buffer_space)),
     )
+
 
 def random_point_on_circle(center=pygame.math.Vector2(0, 0), radius=1.0):
     theta = uniform(0, (2 * pi))
@@ -30,6 +32,7 @@ def random_direction(center=pygame.math.Vector2(0, 0), radius=1.0):
     point = random_point_on_circle(center, radius)
     unit_direction = (point - center).normalize()
     return unit_direction
+
 
 class Scene:
     """Base class for making PyGame Scenes."""
@@ -125,7 +128,7 @@ class BounceScene(PressAnyKeyToExitScene):
         ]
         for i in self._pingpong_sounds:
             i.set_volume(0.1)
-        
+
     def make_circles(self, num_circles):
         print('Num circles', num_circles)
         circle_radius = 32
@@ -144,10 +147,15 @@ class BounceScene(PressAnyKeyToExitScene):
 
             rand_direction = random_direction(position, circle_radius)
             speed = uniform(CircleSprite.min_speed, CircleSprite.max_speed)
-            assert(position.x > 0 and position.x < width)
-            assert( position.y > 0 and position.y < height)
+            assert position.x > 0 and position.x < width
+            assert position.y > 0 and position.y < height
             c = CircleSprite(
-                position, rand_direction, speed, circle_radius, rgbcolors.random_color(), i + 1
+                position,
+                rand_direction,
+                speed,
+                circle_radius,
+                rgbcolors.random_color(),
+                i + 1,
             )
             self._circles.append(c)
 
@@ -184,6 +192,7 @@ class BounceScene(PressAnyKeyToExitScene):
         # circle has to stay within the interval X: 0+radius, width-radius
         #                                        Y: 0+radius, height-radius
         import time
+
         for circle in self._circles:
             position = circle.position + (circle.velocity * self._delta_time)
 
@@ -193,9 +202,9 @@ class BounceScene(PressAnyKeyToExitScene):
 
             position.y = max(position.y, 0 + circle.radius)
             position.y = min(position.y, height - circle.radius)
-                        
+
             circle.position = position
-        
+
         for circle in self._circles:
             normal = None
             if (circle.position.x - circle.radius) <= 0:
@@ -211,27 +220,41 @@ class BounceScene(PressAnyKeyToExitScene):
                 circle.direction = circle.direction.reflect(normal)
 
         for index, circle in enumerate(self._circles[:-1]):
-            for other_circle in self._circles[index+1:]:
-                assert(circle != other_circle)
+            for other_circle in self._circles[index + 1 :]:
+                assert circle != other_circle
                 if pygame.sprite.collide_circle(circle, other_circle):
                     sound_effect = choice(self._pingpong_sounds)
                     sound_effect.play()
 
-                    # Move them back to just touching                    
+                    # Move them back to just touching
                     mid_pt = midpoint(circle.position, other_circle.position)
-                    circle.position = mid_pt + circle.radius * (circle.position - other_circle.position).normalize()
-                    other_circle.position = mid_pt + other_circle.radius * (other_circle.position - circle.position).normalize()                    
-                    
+                    circle.position = (
+                        mid_pt
+                        + circle.radius
+                        * (circle.position - other_circle.position).normalize()
+                    )
+                    other_circle.position = (
+                        mid_pt
+                        + other_circle.radius
+                        * (other_circle.position - circle.position).normalize()
+                    )
+
                     # Elastic Collision - https://en.wikipedia.org/wiki/Elastic_collision
                     # circle's new velocity
                     circle.velocity = elastic_bounce(circle, other_circle)
                     # other circle's new velocity - there is an error here
-                    other_circle.velocity = -elastic_bounce(other_circle, circle)
+                    other_circle.velocity = -elastic_bounce(
+                        other_circle, circle
+                    )
 
-        assert(circle.position.x >= 0 + circle.radius and circle.position.x <= width - circle.radius)
-        assert(circle.position.y >= 0 + circle.radius and circle.position.y <= height - circle.radius)
-        
-        
+        assert (
+            circle.position.x >= 0 + circle.radius
+            and circle.position.x <= width - circle.radius
+        )
+        assert (
+            circle.position.y >= 0 + circle.radius
+            and circle.position.y <= height - circle.radius
+        )
 
     def render_updates(self):
         super().render_updates()

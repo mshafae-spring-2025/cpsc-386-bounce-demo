@@ -1,4 +1,3 @@
-
 """Game objects to create PyGame based games."""
 
 import warnings
@@ -54,7 +53,10 @@ class VideoGame:
     def run(self):
         """Run the game; the main game loop."""
         raise NotImplementedError
+
+
 # pylint: enable=too-few-public-methods
+
 
 # pylint: disable=too-few-public-methods
 class BounceDemo(VideoGame):
@@ -92,4 +94,6 @@ class BounceDemo(VideoGame):
                 self._game_is_over = True
         pygame.quit()
         return 0
+
+
 # pylint: enable=too-few-public-methods
