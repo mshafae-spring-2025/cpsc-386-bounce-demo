@@ -8,7 +8,7 @@ to creating a singleton class."""
 # https://en.wikipedia.org/wiki/Singleton_pattern.
 
 from os import path
-from .movedemo_asset_dict import movedemo_asset_dict as asset_dict
+from .bouncedemo_asset_dict import movedemo_asset_dict as asset_dict
 
 # The absolute path of the current file's directory.
 main_dir = path.split(path.abspath(__file__))[0]

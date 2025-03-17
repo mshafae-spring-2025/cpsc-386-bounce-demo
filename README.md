@@ -1,3 +1,8 @@
-# Movement Using Vectors and Speed
+# Bouncing Balls or Images
 
-The program is inspired by the Pygame example [`go_over_there.py`](https://github.com/pygame/pygame/blob/main/examples/go_over_there.py).
+Balls that bounce off each other or against the walls.
+
+Mouse click prints details about the circle
+
+r: reset
+i: swap images

@@ -8,4 +8,4 @@ import sys
 from videogame import game
 
 if __name__ == "__main__":
-    sys.exit(game.MoveDemo().run())
+    sys.exit(game.BounceDemo().run())

@@ -6,7 +6,7 @@ import warnings
 import pygame
 
 from .scene import (
-    MoveScene,
+    BounceScene,
 )
 
 from .scenemanager import SceneManager
@@ -57,7 +57,7 @@ class VideoGame:
 # pylint: enable=too-few-public-methods
 
 # pylint: disable=too-few-public-methods
-class MoveDemo(VideoGame):
+class BounceDemo(VideoGame):
     """Show a colored window with a colored message and a polygon."""
 
     def __init__(self):
@@ -65,7 +65,7 @@ class MoveDemo(VideoGame):
         super().__init__(window_title="Move Demo")
         self._scene_manager = SceneManager(
             [
-                MoveScene(self._screen),
+                BounceScene(self._screen),
             ]
         )
 
